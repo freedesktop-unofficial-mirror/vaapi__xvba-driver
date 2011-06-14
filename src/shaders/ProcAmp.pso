@@ -1,0 +1,23 @@
+!!ARBfp1.0
+# cgc version 3.0.0007, build date Jul 22 2010
+# command line args: -profile arbfp1
+# source file: ProcAmp.cg
+#vendor NVIDIA Corporation
+#version 3.0.0.07
+#profile arbfp1
+#program ProcAmp_main
+#semantic ProcAmp_main.IN
+#semantic ProcAmp_main.color_matrix
+#var float2 IN.coords : $vin.TEXCOORD0 : TEX0 : 0 : 1
+#var sampler2D IN.texture : TEXUNIT0 : texunit 0 : 0 : 1
+#var float4x4 color_matrix :  : c[0], 4 : 1 : 1
+#var float4 ProcAmp_main.color : $vout.COLOR : COL : -1 : 1
+PARAM c[4] = { program.local[0..3] };
+TEMP R0;
+TEX R0, fragment.texcoord[0], texture[0], 2D;
+MOV result.color.w, R0;
+DP4 result.color.z, R0, c[2];
+DP4 result.color.y, R0, c[1];
+DP4 result.color.x, R0, c[0];
+END
+# 5 instructions, 1 R-regs

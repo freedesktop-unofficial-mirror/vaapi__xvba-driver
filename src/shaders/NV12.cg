@@ -1,0 +1,46 @@
+/*
+ *  NV12.cg - XvBA backend for VA-API (NV12 -> RGB colorspace conversion)
+ *
+ *  xvba-video (C) 2009-2011 Splitted-Desktop Systems
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+ */
+
+struct NV12_input {
+    float2      Y       : TEXCOORD0;
+    sampler2D   Y_tex   : TEXUNIT0;
+    sampler2D   UV_tex  : TEXUNIT1;
+};
+
+struct NV12_output {
+    float4      color   : COLOR;
+};
+
+NV12_output NV12_main(NV12_input IN)
+{
+    NV12_output OUT;
+
+    /* See YV12.cg for explanations on the color conversion matrix */
+    float y = 1.16438356 * (tex2D(IN.Y_tex, IN.Y).x - 0.0625);
+    float u = tex2D(IN.UV_tex, IN.Y).x - 0.5;
+    float v = tex2D(IN.UV_tex, IN.Y).w - 0.5;
+
+    OUT.color.r = y + 1.59602678 * v;
+    OUT.color.g = y - 0.39176229 * u - 0.81296764 * v;
+    OUT.color.b = y + 2.01723214 * u;
+    OUT.color.a = 1.0;
+
+    return OUT;
+}

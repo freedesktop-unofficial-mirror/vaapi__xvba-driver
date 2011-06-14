@@ -1,0 +1,27 @@
+Source: xvba-video
+Section: libs
+Priority: optional
+Maintainer: Gwenole Beauchesne <gbeauchesne@splitted-desktop.com>
+Build-Depends: debhelper (>= 5),
+	       cdbs,
+	       libdrm-dev,
+	       libva-dev (>= @LIBVA_SDS_PACKAGE_VERSION@),
+	       python
+Standards-Version: 3.7.2
+
+Package: xvba-video
+Section: libs
+Architecture: any
+Depends: libva1 (>= @LIBVA_SDS_PACKAGE_VERSION@),
+	 ${shlibs:Depends}, ${misc:Depends}
+Description: XvBA-based backend for VA-API
+ Video decode driver for ATI/AMD chipsets (XvBA implementation).
+
+Package: xvba-video-dbg
+Section: libdevel
+Architecture: any
+Depends: xvba-video (= ${Source-Version})
+Description: XvBA-based backend for VA-API
+ Video decode driver for ATI/AMD chipsets (XvBA implementation).
+ .
+ This package contains the debug files.

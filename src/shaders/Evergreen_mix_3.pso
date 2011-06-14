@@ -1,0 +1,55 @@
+!!ARBfp1.0
+# cgc version 3.0.0007, build date Jul 22 2010
+# command line args: -profile arbfp1
+# source file: Evergreen_mix_3.cg
+#vendor NVIDIA Corporation
+#version 3.0.0.07
+#profile arbfp1
+#program Evergreen_main
+#semantic Evergreen_main.IN
+#semantic Evergreen_main.textureSize
+#semantic Evergreen_main.mix_params
+#var float2 IN.coord : $vin.TEXCOORD0 : TEX0 : 0 : 1
+#var sampler2D IN.tex : TEXUNIT0 : texunit 0 : 0 : 1
+#var float4 textureSize :  : c[0] : 1 : 1
+#var float4 mix_params[0] :  : c[1] : 2 : 1
+#var float4 mix_params[1] :  : c[2] : 2 : 1
+#var float4 mix_params[2] :  : c[3] : 2 : 1
+#var float4 Evergreen_main.color : $vout.COLOR : COL : -1 : 1
+#const c[4] = 2
+PARAM c[5] = { program.local[0..3],
+		{ 2 } };
+TEMP R0;
+TEMP R1;
+MUL R0.zw, fragment.texcoord[0].xyxy, c[0].xyxy;
+ADD R0.xy, R0.zwzw, c[1].zwzw;
+MUL R1.xy, R0, c[1];
+FLR R1.xy, R1;
+MUL R1.xy, R1, c[1].zwzw;
+MUL R0.zw, R0, c[1].xyxy;
+FLR R0.zw, R0;
+MAD R0.xy, -R1, c[4].x, R0;
+MUL R0.zw, R0, c[1];
+MAD R0.zw, R0, c[4].x, R0.xyxy;
+ADD R0.xy, R0.zwzw, c[2].zwzw;
+MUL R1.xy, R0, c[2];
+FLR R1.xy, R1;
+MUL R1.xy, R1, c[2].zwzw;
+MUL R0.zw, R0, c[2].xyxy;
+FLR R0.zw, R0;
+MAD R0.xy, -R1, c[4].x, R0;
+MUL R0.zw, R0, c[2];
+MAD R0.zw, R0, c[4].x, R0.xyxy;
+ADD R0.xy, R0.zwzw, c[3].zwzw;
+MUL R1.xy, R0, c[3];
+FLR R1.xy, R1;
+MUL R0.zw, R0, c[3].xyxy;
+MUL R1.xy, R1, c[3].zwzw;
+FLR R0.zw, R0;
+MAD R0.xy, -R1, c[4].x, R0;
+MUL R0.zw, R0, c[3];
+MAD R0.xy, R0.zwzw, c[4].x, R0;
+MUL R0.xy, R0, c[0].zwzw;
+TEX result.color, R0, texture[0], 2D;
+END
+# 30 instructions, 2 R-regs

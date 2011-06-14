@@ -1,0 +1,201 @@
+xvba-video NEWS -- summary of changes.  2011-06-14
+Copyright (C) 2009-2011 Splitted-Desktop Systems
+
+Version 0.8.0 - 14.Jun.2011
+* Relicense code to GPLv2
+* Require fglrx >= 8.80.5 (Catalyst 10.12)
+
+Version 0.7.8 - 24.Feb.2011
+* Add compatibility glue with upstream libva >= 1.0.8
+
+Version 0.7.7 - 15.Dec.2010
+* Fix Evergreen workaround for newer fglrx versions
+* Fix vaQueryConfigProfiles() & vaQueryConfigEntrypoints() duplicates
+
+Version 0.7.6 - 04.Nov.2010
+* Fix Evergreen workaround for fglrx >= 8.79.4
+* Add vaPutSurface() high-quality scaling flag (VA_FILTER_SCALING_HQ)
+
+Version 0.7.5 - 05.Oct.2010
+* Add support for GL_TEXTURE_RECTANGLE_ARB textures
+* Add workaround for GLX rendering on Evergreen chips
+* Add vaPutSurface() low-quality scaling flag (VA_FILTER_SCALING_FAST)
+
+Version 0.7.4 - 21.Sep.2010
+* Check UVD is really enabled prior to using it
+* Add debug info through XVBA_VIDEO_DEBUG=<level>
+* Fix regression when decoding multiple slices per frame
+* Fix system crash with H.264 videos encoded over HP @ L4.1
+
+Version 0.7.3 - 05.Aug.2010
+* Add compatibility glue with original VA-API 0.31.1
+* Fix vaCopySurfaceGLX() to a GLX texture of different size
+
+Version 0.7.2 - 13.Jul.2010
+* Require fglrx >= 8.73.2 (Catalyst 10.5)
+* Fix vaInitialize() return status if an error occurred
+* Fix regression when rendering subpictures in VA/GLX mode
+* Set VADisplayAttribDirectSurface to 1 in VA/GLX mode too
+
+Version 0.7.1 - 09.Jul.2010
+* Drop explicit link against libva
+* Add compatibility glue with original VA-API 0.31.0
+* Fix regression when rendering to a GL_RGBA texture
+* Fix rendering of subpictures with size mod 16 != 0
+
+Version 0.7.0 - 08.Jul.2010
+* Add support for VA-API 0.31.1-sds1
+* Requires fglrx driver version >= 8.69.2
+* Fix VA/GLX to preserve caller's GL context
+* Fix vaCopySurfaceGLX() to handle GL_RGBA8 textures
+* Fix output surface creation code to detect errors
+
+Version 0.6.11 - 18.Apr.2010
+* Fix VA context destruction
+* Fix rendering of empty surfaces
+* Fix vaGetImage() in I420 format
+* Fix vaCreateConfig() to validate profile & entrypoint
+
+Version 0.6.10 - 18.Mar.2010
+* Add I420 image format
+* Add support for VA-API 0.31.0-sds6
+* Fix destruction of child windows used by vaPutSurface()
+
+Version 0.6.9 - 26.Feb.2010
+* Build against VA-API 0.31.0-sds5
+* Optimize rendering of VA images
+* Fix detection of window size changes
+* Fix rendering of multiple surfaces per window
+* Add support for VA_CLEAR_DRAWABLE to vaPutSurface()
+
+Version 0.6.8 - 22.Feb.2010
+* Fix rendering of VA images not a multiple of 16
+* Add support for GL_RGBA textures in vaCreateSurfaceGLX()
+* Optimize rendering of multiple subpictures from a single image
+
+Version 0.6.7 - 18.Feb.2010
+* Use fail-safe values for H.264 videos encoded over HP@L4.1
+* Fix hue rotation to preserve luminance
+* Fix internal contrast range to [ 0.0f .. 10.0f ]
+* Fix rendering of multiple subpictures per surface
+* Fix vaCopySurfaceGLX() for surfaces with dimensions not a multiple of 16
+
+Version 0.6.6 - 11.Feb.2010
+* Fix XvBA objects destruction for fglrx >= 8.70.3
+* Fix vaPutImage() to a surface used for decoding
+* Fix vaGetImage()/vaPutSurface() with surface dimensions not a multiple of 16
+* Fix rendering of VA subpictures that were previously deassociated
+
+Version 0.6.5 - 08.Feb.2010
+* Add brightness/contrast/hue/saturation display attributes
+* Fix vaPutSurface() window resize. e.g. when switching to full-screen mode
+* Allow vaPutSurface() to render to multiple drawables from a single surface
+
+Version 0.6.4 - 20.Jan.2010
+* Fix vaGetImage() with YV12 format
+* Fix vaPutSurface() to only draw the requested source region
+* Fix rendering of subpictures with size different from parent surface's
+
+Version 0.6.3 - 18.Jan.2010
+* Add background-color display attribute
+* Fix output surface allocation logic
+* Fix subwindow stacking order in vaPutSurface()
+* Fix vaGetImage() to wait for decoding to complete
+
+Version 0.6.2 - 14.Jan.2010
+* Fix VA buffer leaks when decoded surfaces are not used
+* Add support for RGBA, NV12 and YV12 image formats for vaPutImage()
+* Don't capture keyboard and mouse events in windowed rendering mode with OpenGL
+
+Version 0.6.1 - 11.Jan.2010
+* Add support for surfaces not bound to any VA context for plain rendering
+* Avoid flickering in windowed rendering mode with OpenGL (vaPutSurface())
+* Fix windowed rendering with OpenGL for clips larger than the visible area
+
+Version 0.6.0 - 30.Dec.2009
+* Add vaPutSurface() implementation with OpenGL, if PCOM is disabled
+* Add support for bob deinterlacing (PCOM only)
+
+Version 0.5.4 - 04.Dec.2009
+* Fix check for RGB subpicture format
+* Fix support for VA_SUBPICTURE_GLOBAL_ALPHA flag
+* Add YUY2 subpicture format (PCOM only)
+* Add RGBA subpicture format (OpenGL only)
+
+Version 0.5.3 - 28.Nov.2009
+* Handle up to 16 subpictures in OpenGL rendering mode too
+
+Version 0.5.2 - 27.Nov.2009
+* Add ARGB subpictures to OpenGL renderer
+* Fix rendering and destruction of subpictures
+* Drop create/destroy context workarounds for fglrx >= 8.69.2
+
+Version 0.5.1 - 12.Oct.2009
+* Fix ARGB image format
+* Fix H.264 level_idc reconstruction
+* Fix vaCreateImage() when output VAImage points to stack
+* Add vaPutImage() for full BGRA and NV12 image uploads 
+
+Version 0.5.0 - 06.Oct.2009
+* Fix vaGetImage() with YV12 pixels
+* Add support for subpictures (PCOM only)
+
+Version 0.4.4 - 24.Sep.2009
+* Fix vaQueryConfigProfiles()
+* Fix vaQueryConfigEntrypoints()
+
+Version 0.4.3 - 22.Sep.2009
+* Fix vaQuerySurfaceStatus()
+* Fix various bugs in vaGetImage()
+* Fix support for multiple VA/GLX surfaces per context
+
+Version 0.4.2 - 10.Sep.2009
+* Add VADisplayAttributes
+* Add support for VA-API 0.31
+* Fix one minor memory leak in vaDestroySurfaces()
+* Make vaInitialize() fail if PCOM is disabled and fglrx < 8.66
+
+Version 0.4.1 - 01.Sep.2009
+* Fix vaQueryImageFormats()
+* Add support for OpenGL extensions (v3) to VA-API
+* Disable support for PCOM rendering in public releases
+
+Version 0.4.0 - 21.Aug.2009
+* Add support for OpenGL extensions to VA-API
+* Fix VAImageID pool memory leak in vaTerminate()
+
+Version 0.3.0 - 12.Aug.2009
+* Add support for XvBA 0.74
+* Add support for VAImage related functions:
+  - vaCreateImage(), vaDestroyImage()
+  - vaGetImage() for full surface readback only (i.e. no partial reads)
+
+Version 0.2.3 - 04.Aug.2009
+* Add support for VA-API 0.30
+* Add support for vaSyncSurface() and vaQuerySurfaceStatus()
+* Add debugging tools (XVBA_VIDEO_TRACE environment variable)
+* Fix vaPutSurface() in asynchronous mode under some rare conditions
+
+Version 0.2.2 - 17.Jun.2009
+* Use asynchronous present model by default
+* Fix video playback when window size changes
+* Fix memory leak in presence of multiple slices per frame
+
+Version 0.2.1 - 16.Jun.2009
+* Add make bindist rule
+* Fix fullscreen mode with some video clips
+* Fix windowed mode to use the requested display bounds
+* Fix unimplemented hooks to return an error (VA_STATUS_ERROR_OPERATION_FAILED)
+
+Version 0.2.0 - 11.Jun.2009
+* Fix memory leaks
+* Fix VC-1 decoding
+* Fix minor H.264 bugs
+
+Version 0.1.1 - 10.Jun.2009
+* Allow window size changes
+* Fix VC-1 LEVEL reconstruction
+* Fix H.264 level_idc reconstruction
+
+Version 0.1.0 - 09.Jun.2009
+* Initial public (binary) release

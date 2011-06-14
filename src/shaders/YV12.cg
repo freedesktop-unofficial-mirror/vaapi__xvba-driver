@@ -1,0 +1,76 @@
+/*
+ *  YV12.cg - XvBA backend for VA-API (YV12 -> RGB colorspace conversion)
+ *
+ *  xvba-video (C) 2009-2011 Splitted-Desktop Systems
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+ */
+
+/*
+ * For 8-bit per sample:
+ *
+ *             219                219                       219
+ *   Y =  16 + --- * Kr     * R + --- * (1 - Kr - Kb) * G + --- * Kb     * B
+ *             255                255                       255
+ *
+ *             112     Kr         112   1 - (Kr + Kb)       112
+ *   U = 128 - --- * ------ * R - --- * ------------- * G + ---          * B
+ *             255   1 - Kb       255      1 - Kb           255
+ *
+ *             112                112   1 - (Kr + Kb)       112     Kb
+ *   V = 128 + ---          * R - --- * ------------- * G - --- * ------ * B
+ *             255                255      1 - Kr           255   1 - Kr
+ *
+ * Constants for SDTV (ITU-R BT.601):
+ *   Kb = 0.114
+ *   Kr = 0.299
+ *
+ * Constants for HDTV (ITU-R BT.709):
+ *   Kb = 0.0722
+ *   Kr = 0.2126
+ *
+ * Matrix generation with xcas:
+ *   inverse([
+ *   [  Kr         ,  1-(Kr+Kb)          ,  Kb        ]*219/255,
+ *   [ -Kr/(1-Kb)  , -(1-(Kr+Kb))/(1-Kb) ,  1         ]*112/255,
+ *   [  1          , -(1-(Kr+Kb))/(1-Kr) , -Kb/(1-Kr) ]*112/255])
+ */
+
+struct YV12_input {
+    float2      Y       : TEXCOORD0;
+    sampler2D   Y_tex   : TEXUNIT0;
+    sampler2D   U_tex   : TEXUNIT2;
+    sampler2D   V_tex   : TEXUNIT1;
+};
+
+struct YV12_output {
+    float4      color   : COLOR;
+};
+
+YV12_output YV12_main(YV12_input IN)
+{
+    YV12_output OUT;
+
+    float y = 1.16438356 * (tex2D(IN.Y_tex, IN.Y).g - 0.0625);
+    float u = tex2D(IN.U_tex, IN.Y).g - 0.5;
+    float v = tex2D(IN.V_tex, IN.Y).g - 0.5;
+
+    OUT.color.r = y + 1.59602678 * v;
+    OUT.color.g = y - 0.39176229 * u - 0.81296764 * v;
+    OUT.color.b = y + 2.01723214 * u;
+    OUT.color.a = 1.0;
+
+    return OUT;
+}

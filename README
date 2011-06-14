@@ -1,0 +1,32 @@
+
+  xvba-video
+  An XvBA-based backend for VA-API
+
+  Copyright (C) 2009-2011 Splitted-Desktop Systems
+
+
+License
+-------
+
+xvba-video is available under the terms of the GNU General Public
+License.
+
+
+Overview
+--------
+
+xvba-video consists in an XvBA-based backend for VA-API.
+
+
+Requirements
+------------
+
+libVA API version (not package)	GLX support
+0.29-branch >= 0.29.0-sds8	No
+0.30-branch >= 0.30.0-sds1	No
+0.30-branch >= 0.30.4-sds5	Yes
+upstream 0.31-branch		No
+0.31-branch >= 0.31.0-sds1	Yes
+
+mplayer-vaapi >= 20090320 patchset is also needed if you intend to use
+MPlayer.

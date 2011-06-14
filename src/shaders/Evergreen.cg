@@ -1,0 +1,65 @@
+/*
+ *  Evergreen.cg - XvBA backend for VA-API (workaround for Evergreen rendering)
+ *
+ *  xvba-video (C) 2009-2011 Splitted-Desktop Systems
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+ */
+
+struct Evergreen_input {
+    float2      coord   : TEXCOORD0;
+    sampler2D   tex     : TEXUNIT0;
+};
+
+struct Evergreen_output {
+    float4      color   : COLOR;
+};
+
+/*
+ * params.xy = 1/(2*n);
+ * params.zw = (n);
+ */
+float2 swap_l(float2 v, float4 params)
+{
+    return 2.0 * params.zw * floor(v * params.xy);
+}
+
+float2 swap_r(float2 v, float4 params)
+{
+    return (v + params.zw) - 2.0 * params.zw * floor((v + params.zw) * params.xy);
+}
+
+float2 swap(float2 v, float4 params)
+{
+    return swap_l(v, params) + swap_r(v, params);
+}
+
+Evergreen_output Evergreen_main(
+    Evergreen_input IN,
+    uniform float4  textureSize,
+    uniform float4  mix_params[MIX_PARAMS]
+)
+{
+    Evergreen_output OUT;
+
+    float2 coord = IN.coord;
+    coord *= textureSize.xy;
+    for (int i = 0; i < MIX_PARAMS; i++)
+        coord = swap(coord, mix_params[i]);
+    coord *= textureSize.zw;
+
+    OUT.color = tex2D(IN.tex, coord);
+    return OUT;
+}

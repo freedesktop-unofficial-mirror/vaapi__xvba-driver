@@ -1,0 +1,179 @@
+/*
+ *  Bicubic.cg - XvBA backend for VA-API (Bicubic filtering)
+ *
+ *  xvba-video (C) 2009-2011 Splitted-Desktop Systems
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+ */
+
+/*
+ * GPU Gems - Chapter 20. Fast Third-Order Texture Filtering:
+ * <http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter20.html>
+ *
+ *         1
+ * w0(a) = - * (-a^3 + 3*a^2 - 3*a + 1)
+ *         6
+ *
+ *         1
+ * w1(a) = - * (3*a^3 - 6*a^2 + 4)
+ *         6
+ *
+ *         1
+ * w2(a) = - * (-3*a^3 + 3*a^2 + 3*a + 1)
+ *         6
+ *
+ *         1
+ * w3(a) = - * a^3
+ *         6
+ *
+ *                                         w1(x)
+ * g0(x) = w0(x) + w1(x) ; h0(x) = 1 - ------------- + x
+ *                                     w0(x) + w1(x)
+ *
+ *                                         w3(x)
+ * g1(x) = w2(x) + w3(x) ; h1(x) = 1 + ------------- - x
+ *                                     w2(x) + w3(x)
+ */
+
+#ifdef USE_TEXTURE_RECTANGLE
+#define Sampler     samplerRECT
+#define loadTexture texRECT
+#else
+#define Sampler     sampler2D
+#define loadTexture tex2D
+#endif
+
+float2 unpackCoord(float2 coord, float4 textureSize)
+{
+#ifndef USE_TEXTURE_RECTANGLE
+    coord *= textureSize.xy;
+#endif
+    return coord;
+}
+
+float2 packCoord(float2 coord, float4 textureSize)
+{
+#ifndef USE_TEXTURE_RECTANGLE
+    coord *= textureSize.zw;
+#endif
+    return coord;
+}
+
+struct Bicubic_input {
+    float2      coord   : TEXCOORD0;
+    Sampler     tex     : TEXUNIT0;
+#ifdef USE_TEXTURE_FLOAT
+    sampler1D   tex_hg  : TEXUNIT1;
+#endif
+};
+
+struct Bicubic_output {
+    float4      color   : COLOR;
+};
+
+#ifndef USE_TEXTURE_FLOAT
+float2 e2(float2 a)
+{
+    return a * a;
+}
+
+float2 e3(float2 a)
+{
+    return e2(a) * a;
+}
+
+float2 w0(float2 a)
+{
+    return (1.0f/6.0f) * (-e3(a) + 3.0f*e2(a) - 3.0f*a + 1.0f);
+}
+
+float2 w1(float2 a)
+{
+    return (1.0f/6.0f) * (3.0f*e3(a) - 6.0f*e2(a) + 4.0f);
+}
+
+float2 w2(float2 a)
+{
+    return (1.0f/6.0f) * (-3.0f*e3(a) + 3.0f*e2(a) + 3.0f*a + 1.0f);
+}
+
+float2 w3(float2 a)
+{
+    return (1.0f/6.0f) * (e3(a));
+}
+
+float2 g0(float2 x)
+{
+    return w0(x) + w1(x);
+}
+
+float2 h0(float2 x)
+{
+    //return 1.0f - w1(x) / (w0(x) + w1(x)) + x;
+    return -1.0f + w1(x) / g0(x) + 0.5f;
+}
+
+float2 g1(float2 x)
+{
+    return w2(x) + w3(x);
+}
+
+float2 h1(float2 x)
+{
+    //return 1.0f + w3(x) / (w2(x) + w3(x)) - x;
+    return 1.0f + w3(x) / g1(x) + 0.5f;
+}
+#endif
+
+float4 cubicTex2D(Bicubic_input IN, float4 textureSize)
+{
+    const float2 coord     = unpackCoord(IN.coord, textureSize) - 0.5f;
+    const float2 int_coord = floor(coord);
+#ifdef USE_TEXTURE_FLOAT
+    const float4 hg_x = tex1D(IN.tex_hg, coord.x);
+    const float4 hg_y = tex1D(IN.tex_hg, coord.y);
+    const float2 g[2] = { float2(hg_x.z, hg_y.z), float2(hg_x.w, hg_y.w) };
+    const float2 h[2] = { float2(hg_x.x, hg_y.x)+int_coord, float2(hg_x.y, hg_y.y)+int_coord };
+#else
+    const float2 frc_coord = coord - int_coord;
+    const float2 g[2] = { g0(frc_coord), g1(frc_coord) };
+    const float2 h[2] = { h0(frc_coord)+int_coord, h1(frc_coord)+int_coord };
+#endif
+
+    const float2 coord00 = packCoord(float2(h[0].x, h[0].y), textureSize);
+    const float2 coord10 = packCoord(float2(h[1].x, h[0].y), textureSize);
+    const float2 coord01 = packCoord(float2(h[0].x, h[1].y), textureSize);
+    const float2 coord11 = packCoord(float2(h[1].x, h[1].y), textureSize);
+
+    float4 tex00 = loadTexture(IN.tex, coord00);
+    float4 tex10 = loadTexture(IN.tex, coord10);
+    float4 tex01 = loadTexture(IN.tex, coord01);
+    float4 tex11 = loadTexture(IN.tex, coord11);
+
+    tex00 = g[0].y * tex00 + g[1].y * tex01;
+    tex10 = g[0].y * tex10 + g[1].y * tex11;
+    return (g[0].x * tex00 + g[1].x * tex10);
+}
+
+Bicubic_output Bicubic_main(
+    Bicubic_input IN,
+    uniform float4 textureSize
+)
+{
+    Bicubic_output OUT;
+
+    OUT.color = cubicTex2D(IN, textureSize);
+    return OUT;
+}
